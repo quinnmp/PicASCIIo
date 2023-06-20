@@ -7,7 +7,5 @@ body {
     top: 50%;
     left: 50%;
     position: absolute;
-    width: 650px;
-    height: 478px;
     transform: translate(-50%, -50%);
 }
