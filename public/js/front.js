@@ -2,7 +2,7 @@ const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
 
 const image = new Image();
-image.src = 'images/line1.png';
+image.src = 'images/line2.png';
 
 image.addEventListener('load', function(){
     canvas.width = image.width;
@@ -26,12 +26,18 @@ function makeBlackAndWhite() {
     scannedImage.data = scannedData;
     context.putImageData(scannedImage, 0, 0);
 
-    console.log('Analyzing A')
-    const colorProfile = analyzeCell(scannedData, 0);
+    const colorProfile = analyzeCell(scannedData, 11);
     for (let i = 0; i < 12; i++) {
         scannedImage.data = putCell(colorProfile, scannedData, i);
         context.putImageData(scannedImage, 0, 0);
     }
+    fetch('/', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ glyph: "X", profile: colorProfile })
+    });
 }
 
 function analyzeCell(scannedData, cell){
