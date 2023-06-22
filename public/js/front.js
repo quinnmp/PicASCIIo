@@ -2,7 +2,7 @@ const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
 
 const image = new Image();
-image.src = 'images/line2.png';
+image.src = 'images/line8.png';
 
 image.addEventListener('load', function(){
     canvas.width = image.width;
@@ -26,17 +26,17 @@ function makeBlackAndWhite() {
     scannedImage.data = scannedData;
     context.putImageData(scannedImage, 0, 0);
 
-    const colorProfile = analyzeCell(scannedData, 11);
+    const colorProfiles = [];
     for (let i = 0; i < 12; i++) {
-        scannedImage.data = putCell(colorProfile, scannedData, i);
-        context.putImageData(scannedImage, 0, 0);
+        colorProfiles.push(analyzeCell(scannedData, i));
     }
+
     fetch('/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ glyph: "X", profile: colorProfile })
+        body: JSON.stringify({colorProfiles})
     });
 }
 
@@ -47,7 +47,6 @@ function analyzeCell(scannedData, cell){
             colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (cell * 128 * 4)]);
         }
     }
-    console.log(colorProfile);
     return colorProfile;
 }
 

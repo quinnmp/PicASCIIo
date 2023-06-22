@@ -14,7 +14,16 @@ const glyphProfileSchema = new mongoose.Schema ({
 
 const GlyphProfile = mongoose.model("GlyphProfile", glyphProfileSchema);
 
-const glyphProfileArray = GlyphProfile.find({});
+let glyphProfileArray = new Array;
+async function retrieveGlyphProfiles() {
+    try {
+      glyphProfileArray = await GlyphProfile.find({}).exec();
+    } catch (e) {
+      console.log(e);
+    }
+}
+  
+retrieveGlyphProfiles();
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -26,12 +35,26 @@ app.get("/", function(req, res) {
 });
 
 app.post("/", function(req, res) {
-    const glyphProfile = new GlyphProfile ({
-        glyph: req.body.glyph,
-        profile: req.body.profile
-    });
+    // const glyphProfile = new GlyphProfile ({
+    //     glyph: req.body.glyph,
+    //     profile: req.body.profile
+    // });
 
-    glyphProfile.save();
+    // glyphProfile.save();
+    const profile = req.body.profiles;
+
+    glyphProfileArray.forEach(element => {
+        const comparedProfile = element.profile;
+
+        let similarities = 0;
+        for (let i = 0; i < profile.length; i++) {
+            if (profile[i] === comparedProfile[i]) {
+                similarities++;
+            }
+        }
+
+        console.log("Glyph similarity to " + element.glyph + ": " + similarities / profile.length);
+    });
 
     res.redirect("/");
 });
