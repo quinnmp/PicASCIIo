@@ -41,7 +41,7 @@ app.post("/", function(req, res) {
     // });
 
     // glyphProfile.save();
-    const profile = req.body.profiles;
+    const profile = req.body.profile;
 
     glyphProfileArray.forEach(element => {
         const comparedProfile = element.profile;

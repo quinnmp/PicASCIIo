@@ -26,17 +26,17 @@ function makeBlackAndWhite() {
     scannedImage.data = scannedData;
     context.putImageData(scannedImage, 0, 0);
 
-    const colorProfiles = [];
+    const colorProfile = analyzeCell(scannedData, 9);
     for (let i = 0; i < 12; i++) {
-        colorProfiles.push(analyzeCell(scannedData, i));
+        scannedImage.data = putCell(colorProfile, scannedData, i);
+        context.putImageData(scannedImage, 0, 0);
     }
-
     fetch('/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({colorProfiles})
+        body: JSON.stringify({ glyph: "-", profile: colorProfile })
     });
 }
 
@@ -47,6 +47,7 @@ function analyzeCell(scannedData, cell){
             colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (cell * 128 * 4)]);
         }
     }
+    console.log(colorProfile);
     return colorProfile;
 }
 
