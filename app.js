@@ -41,20 +41,29 @@ app.post("/", function(req, res) {
     // });
 
     // glyphProfile.save();
-    const profile = req.body.profile;
+    const profiles = req.body.colorProfiles;
 
-    glyphProfileArray.forEach(element => {
-        const comparedProfile = element.profile;
-
-        let similarities = 0;
-        for (let i = 0; i < profile.length; i++) {
-            if (profile[i] === comparedProfile[i]) {
-                similarities++;
+    profiles.forEach(profileElement => {
+        let highestSimilarity = 0;
+        let highestSimilarityGlyph = '';
+        glyphProfileArray.forEach(element => {
+            const comparedProfile = element.profile;
+    
+            let similarities = 0;
+            for (let i = 0; i < profileElement.length; i++) {
+                if (profileElement[i] === comparedProfile[i]) {
+                    similarities++;
+                }
             }
-        }
-
-        console.log("Glyph similarity to " + element.glyph + ": " + similarities / profile.length);
-    });
+    
+            // console.log("Glyph similarity to " + element.glyph + ": " + similarities / profileElement.length);
+            if (similarities > highestSimilarity) {
+                highestSimilarity = similarities;
+                highestSimilarityGlyph = element.glyph;
+            }
+        });
+        process.stdout.write(highestSimilarityGlyph);
+    })
 
     res.redirect("/");
 });
