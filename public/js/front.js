@@ -2,13 +2,13 @@ const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
 
 let image = new Image();
-image.src = 'images/line1.png';
+image.src = 'images/circle.jpg';
 
 let horizontalGlyphs = 0;
 let verticalGlyphs = 0;
 
 image.addEventListener('load', function(){
-    image = scaleImage(100, image);
+    image = scaleImage(20, image);
     canvas.width = image.width;
     canvas.height = image.height;
     context.drawImage(image, 0, 0);
@@ -33,7 +33,9 @@ function makeBlackAndWhite() {
     const colorProfiles = [];
     for (let i = 0; i < verticalGlyphs; i++) {
         for (let j = 0; j < horizontalGlyphs; j++) {
-            colorProfiles.push(analyzeCell(scannedData, i, j));
+            colorProfiles.push(analyzeCell(scannedData, j, i));
+            // scannedImage.data = putCell(analyzeCell(scannedData, 0, 0), scannedData, 0, 1);
+            // context.putImageData(scannedImage, 0, 0);
         }
     }
 
@@ -77,17 +79,17 @@ function analyzeCell(scannedData, horizontalCell, verticalCell){
     const colorProfile = new Array();
     for (let i = 0; i < 312; i += 1) {
         for (let j = 0; j < 128; j += 1) {
-            colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 128 * 4)]);
+            colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 312 * 128 * 4)]);
         }
     }
     return colorProfile;
 }
 
-function putCell(colorProfile, scannedData, cell){
+function putCell(colorProfile, scannedData, horizontalCell, verticalCell){
     for (let i = 0; i < 312; i += 1) {
         for (let j = 0; j < 128; j += 1) {
             let color = colorProfile[(i * 128) + j];
-            let position = (i * image.width * 4) + (j * 4) + (cell * 128 * 4);
+            let position = (i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 312 * 128 * 4);
             scannedData[position] = color;
             scannedData[position + 1] = color;
             scannedData[position + 2] = color;
