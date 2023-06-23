@@ -23,51 +23,57 @@ async function retrieveGlyphProfiles() {
     }
 }
   
-retrieveGlyphProfiles();
+retrieveGlyphProfiles().then(() => {
+    app.set("view engine", "ejs");
+    app.use(bodyParser.urlencoded({extended: true}));
+    app.use(bodyParser.json({ limit: "500mb" }));
+    app.use(express.static("public"));
 
-app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(express.static("public"));
+    app.get("/", function(req, res) {
+        res.render("index");
+    });
 
-app.get("/", function(req, res) {
-    res.render("index");
-});
+    app.post("/", function(req, res) {
+        console.log("Post request recieved");
+        // const glyphProfile = new GlyphProfile ({
+        //     glyph: req.body.glyph,
+        //     profile: req.body.profile
+        // });
 
-app.post("/", function(req, res) {
-    // const glyphProfile = new GlyphProfile ({
-    //     glyph: req.body.glyph,
-    //     profile: req.body.profile
-    // });
+        // glyphProfile.save();
+        const profiles = req.body.imageInfo.colorProfiles;
+        const horizontalGlyphs = req.body.imageInfo.horizontalGlyphs;
 
-    // glyphProfile.save();
-    const profiles = req.body.colorProfiles;
-
-    profiles.forEach(profileElement => {
-        let highestSimilarity = 0;
-        let highestSimilarityGlyph = '';
-        glyphProfileArray.forEach(element => {
-            const comparedProfile = element.profile;
-    
-            let similarities = 0;
-            for (let i = 0; i < profileElement.length; i++) {
-                if (profileElement[i] === comparedProfile[i]) {
-                    similarities++;
+        profiles.forEach((profileElement, index) => {
+            let highestSimilarity = 0;
+            let highestSimilarityGlyph = '';
+            glyphProfileArray.forEach(element => {
+                const comparedProfile = element.profile;
+        
+                let similarities = 0;
+                for (let i = 0; i < profileElement.length; i++) {
+                    if (profileElement[i] === comparedProfile[i]) {
+                        similarities++;
+                    }
                 }
+        
+                // console.log("Glyph similarity to " + element.glyph + ": " + similarities / profileElement.length);
+                if (similarities > highestSimilarity) {
+                    highestSimilarity = similarities;
+                    highestSimilarityGlyph = element.glyph;
+                }
+            });
+            if((index % horizontalGlyphs) === 0 && index > 0) {
+                console.log();
             }
-    
-            // console.log("Glyph similarity to " + element.glyph + ": " + similarities / profileElement.length);
-            if (similarities > highestSimilarity) {
-                highestSimilarity = similarities;
-                highestSimilarityGlyph = element.glyph;
-            }
-        });
-        process.stdout.write(highestSimilarityGlyph);
-    })
+            process.stdout.write(highestSimilarityGlyph);
+        })
+        console.log();
 
-    res.redirect("/");
-});
+        res.redirect("/");
+    });
 
-app.listen(process.env.PORT || 8008, function() {
-    console.log("Server started.");
-});
+    app.listen(process.env.PORT || 8008, function() {
+        console.log("Server started.");
+    });
+})

@@ -1,10 +1,14 @@
 const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
 
-const image = new Image();
-image.src = 'images/line2.png';
+let image = new Image();
+image.src = 'images/line1.png';
+
+let horizontalGlyphs = 0;
+let verticalGlyphs = 0;
 
 image.addEventListener('load', function(){
+    image = scaleImage(100, image);
     canvas.width = image.width;
     canvas.height = image.height;
     context.drawImage(image, 0, 0);
@@ -27,24 +31,53 @@ function makeBlackAndWhite() {
     context.putImageData(scannedImage, 0, 0);
 
     const colorProfiles = [];
-    for (let i = 0; i < 12; i++) {
-        colorProfiles.push(analyzeCell(scannedData, i));
+    for (let i = 0; i < verticalGlyphs; i++) {
+        for (let j = 0; j < horizontalGlyphs; j++) {
+            colorProfiles.push(analyzeCell(scannedData, i, j));
+        }
     }
+
+    const imageInfo = {
+        colorProfiles: colorProfiles,
+        horizontalGlyphs: horizontalGlyphs
+    };
 
     fetch('/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({colorProfiles})
+        body: JSON.stringify({imageInfo})
     });
 }
 
-function analyzeCell(scannedData, cell){
+function scaleImage(numGlyphs, image) {
+    const ratio = image.height / image.width;
+    const tempCanvas = document.createElement('canvas');
+    const tempContext = tempCanvas.getContext('2d');
+
+    horizontalGlyphs = numGlyphs;
+    tempCanvas.width = numGlyphs * 128;
+    console.log("Width: " + tempCanvas.width);
+    const scaledHeight = ratio * tempCanvas.width;
+    console.log("Height: " + scaledHeight);
+    verticalGlyphs = Math.round(scaledHeight / 312);
+    tempCanvas.height = verticalGlyphs * 312;
+    console.log("Rounded height: " + tempCanvas.height);
+
+    tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    const scaledImage = new Image();
+    scaledImage.src = tempCanvas.toDataURL();
+
+    return scaledImage;
+}
+
+function analyzeCell(scannedData, horizontalCell, verticalCell){
     const colorProfile = new Array();
     for (let i = 0; i < 312; i += 1) {
         for (let j = 0; j < 128; j += 1) {
-            colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (cell * 128 * 4)]);
+            colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 128 * 4)]);
         }
     }
     return colorProfile;
