@@ -6,9 +6,11 @@ image.src = 'images/circle.jpg';
 
 let horizontalGlyphs = 0;
 let verticalGlyphs = 0;
+let horizontalGlyphSkipRatio = 1;
+let verticalGlyphSkipRatio = 1;
 
 image.addEventListener('load', function(){
-    image = scaleImage(20, image);
+    image = scaleImage(100, image);
     canvas.width = image.width;
     canvas.height = image.height;
     context.drawImage(image, 0, 0);
@@ -33,15 +35,18 @@ function makeBlackAndWhite() {
     const colorProfiles = [];
     for (let i = 0; i < verticalGlyphs; i++) {
         for (let j = 0; j < horizontalGlyphs; j++) {
-            colorProfiles.push(analyzeCell(scannedData, j, i));
-            // scannedImage.data = putCell(analyzeCell(scannedData, 0, 0), scannedData, 0, 1);
-            // context.putImageData(scannedImage, 0, 0);
+            let cell = analyzeCell(scannedData, j, i)
+            colorProfiles.push(cell);
+            scannedImage.data = putCell(cell, scannedData, j, i);
+            context.putImageData(scannedImage, 0, 0);
         }
     }
 
     const imageInfo = {
         colorProfiles: colorProfiles,
-        horizontalGlyphs: horizontalGlyphs
+        horizontalGlyphs: horizontalGlyphs,
+        horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
+        verticalGlyphSkipRatio: verticalGlyphSkipRatio
     };
 
     fetch('/', {
@@ -58,38 +63,56 @@ function scaleImage(numGlyphs, image) {
     const tempCanvas = document.createElement('canvas');
     const tempContext = tempCanvas.getContext('2d');
 
+    let originalWidth = image.width;
+
     horizontalGlyphs = numGlyphs;
-    tempCanvas.width = numGlyphs * 128;
-    console.log("Width: " + tempCanvas.width);
-    const scaledHeight = ratio * tempCanvas.width;
-    console.log("Height: " + scaledHeight);
+    const scaledHeight = ratio * horizontalGlyphs * 128;
     verticalGlyphs = Math.round(scaledHeight / 312);
-    tempCanvas.height = verticalGlyphs * 312;
-    console.log("Rounded height: " + tempCanvas.height);
+    let calculatedHeight = verticalGlyphs * 312;
+
+    horizontalGlyphSkipRatio = roundToNearestWidthFactor((horizontalGlyphs * 128) / originalWidth);
+    tempCanvas.width = Math.floor((1 / horizontalGlyphSkipRatio) * (horizontalGlyphs * 128));
+    verticalGlyphSkipRatio = roundToNearestHeightFactor((verticalGlyphs * 312) / ((1 / horizontalGlyphSkipRatio) * calculatedHeight));
+    tempCanvas.height = Math.floor((1 / verticalGlyphSkipRatio) * (verticalGlyphs * 312));
+
+    console.log("Horizontal resolution: " + tempCanvas.width);
+    console.log("Vertical resolution: " + tempCanvas.height);
 
     tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
 
     const scaledImage = new Image();
     scaledImage.src = tempCanvas.toDataURL();
 
+    console.log("Vertical glyphs: " + verticalGlyphs);
+
+    console.log("horizontalGlyphSkipRatio: " + horizontalGlyphSkipRatio);
+    console.log("verticalGlyphSkipRatio: " + verticalGlyphSkipRatio);
+
     return scaledImage;
 }
 
 function analyzeCell(scannedData, horizontalCell, verticalCell){
     const colorProfile = new Array();
-    for (let i = 0; i < 312; i += 1) {
-        for (let j = 0; j < 128; j += 1) {
-            colorProfile.push(scannedData[(i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 312 * 128 * 4)]);
+    for (let i = 0; i < Math.round(312 / verticalGlyphSkipRatio); i += 1) {
+        for (let j = 0; j < Math.round(128 / horizontalGlyphSkipRatio); j += 1) {
+            position = Math.round((i * image.width * 4) + (j * 4) + (horizontalCell * (128 / horizontalGlyphSkipRatio) * 4) + (verticalCell * horizontalGlyphs * (312 / verticalGlyphSkipRatio) * (128 / horizontalGlyphSkipRatio) * 4))
+            if ((position + 1) % 4 === 0) {
+                position++;
+            }
+            colorProfile.push(scannedData[position]);
         }
     }
     return colorProfile;
 }
 
 function putCell(colorProfile, scannedData, horizontalCell, verticalCell){
-    for (let i = 0; i < 312; i += 1) {
-        for (let j = 0; j < 128; j += 1) {
-            let color = colorProfile[(i * 128) + j];
-            let position = (i * image.width * 4) + (j * 4) + (horizontalCell * 128 * 4) + (verticalCell * horizontalGlyphs * 312 * 128 * 4);
+    for (let i = 0; i < Math.round(312 / verticalGlyphSkipRatio); i += 1) {
+        for (let j = 0; j  < Math.round(128 / horizontalGlyphSkipRatio); j += 1) {
+            let color = colorProfile[i * Math.round(128 / horizontalGlyphSkipRatio) + j];
+            let position = Math.round((i * image.width * 4) + (j * 4) + (horizontalCell * (128 / horizontalGlyphSkipRatio) * 4) + (verticalCell * image.width * (312 / verticalGlyphSkipRatio) * 4));
+            while (position % 4 !== 0) {
+                position++;
+            }
             scannedData[position] = color;
             scannedData[position + 1] = color;
             scannedData[position + 2] = color;
@@ -97,4 +120,34 @@ function putCell(colorProfile, scannedData, horizontalCell, verticalCell){
         }
     }
     return scannedData;
+}
+
+function roundToNearestWidthFactor(number) {
+    // let factors = [1, 2, 4, 8, 16, 32, 64, 128];
+    let factors = [1, 2, 4, 8, 16];
+    let lowestDistance = Number.MAX_SAFE_INTEGER;
+    let lowestDistanceFactor = 1;
+    factors.forEach(factor => {
+        let distance = Math.abs(number - factor);
+        if (distance < lowestDistance) {
+            lowestDistance = distance;
+            lowestDistanceFactor = factor;
+        }
+    });
+    return lowestDistanceFactor;
+}
+
+function roundToNearestHeightFactor(number) {
+    // let factors = [1, 2, 3, 4, 6, 8, 12, 13, 24, 26, 39, 52, 78, 104, 156, 312];
+    let factors = [1, 2, 3, 4, 6, 8, 12, 13];
+    let lowestDistance = Number.MAX_SAFE_INTEGER;
+    let lowestDistanceFactor = 1;
+    factors.forEach(factor => {
+        let distance = Math.abs(number - factor);
+        if (distance < lowestDistance) {
+            lowestDistance = distance;
+            lowestDistanceFactor = factor;
+        }
+    });
+    return lowestDistanceFactor;
 }

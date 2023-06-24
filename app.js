@@ -5,7 +5,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
-mongoose.connect(`mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.r0wfe5p.mongodb.net/?retryWrites=true&w=majority`)
+mongoose.connect(`mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`)
 
 const glyphProfileSchema = new mongoose.Schema ({
     glyph: String,
@@ -43,6 +43,8 @@ retrieveGlyphProfiles().then(() => {
         // glyphProfile.save();
         const profiles = req.body.imageInfo.colorProfiles;
         const horizontalGlyphs = req.body.imageInfo.horizontalGlyphs;
+        const horizontalGlyphSkipRatio = req.body.imageInfo.horizontalGlyphSkipRatio;
+        const verticalGlyphSkipRatio = req.body.imageInfo.verticalGlyphSkipRatio;
 
         profiles.forEach((profileElement, index) => {
             let highestSimilarity = 0;
@@ -52,13 +54,16 @@ retrieveGlyphProfiles().then(() => {
         
                 let similarities = 0;
                 for (let i = 0; i < profileElement.length; i++) {
-                    if (profileElement[i] === comparedProfile[i]) {
+                    let position = Math.floor((i * horizontalGlyphSkipRatio) / 128) * (verticalGlyphSkipRatio * 128);
+                    // console.log("Profile element " + profileElement[i]);
+                    // console.log("Compared element " + comparedProfile[position + ((i * horizontalGlyphSkipRatio) % 128)]);
+                    if (profileElement[i] === comparedProfile[position + ((i * horizontalGlyphSkipRatio) % 128)]) {
                         similarities++;
                     }
                 }
         
                 // console.log("Glyph similarity to " + element.glyph + ": " + similarities / profileElement.length);
-                if (similarities > highestSimilarity) {
+                if (similarities > highestSimilarity || (similarities === highestSimilarity && highestSimilarityGlyph === "_")) {
                     highestSimilarity = similarities;
                     highestSimilarityGlyph = element.glyph;
                 }
