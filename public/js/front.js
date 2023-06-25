@@ -34,6 +34,8 @@ function resize() {
     drawableCanvas.style.left = (canvasCol.getBoundingClientRect().left + ((canvasCol.getBoundingClientRect().right - canvasCol.getBoundingClientRect().left) * 0.15)) + "px";
     canvasColDiv.style.height = (drawableCanvas.height + 50) + "px";
     drawableContext = drawableCanvas.getContext('2d');
+    drawableContext.fillStyle = "white";
+    drawableContext.fillRect(0, 0, drawableCanvas.width, drawableCanvas.height);
 }
 
 function setPosition(e) {
@@ -47,7 +49,7 @@ function draw(e) {
 
   drawableContext.beginPath();
 
-  drawableContext.lineWidth = 5;
+  drawableContext.lineWidth = 25;
   drawableContext.lineCap = 'round';
   drawableContext.strokeStyle = 'black';
 
@@ -59,6 +61,7 @@ function draw(e) {
 }
 
 window.addEventListener('load', function() {
+    resize();
     image.src = imageSource;
     document.querySelector('input[type="file"]').addEventListener('change', function() {
         if (this.files && this.files[0]) {
@@ -132,7 +135,68 @@ function makeBlackAndWhite() {
     }
 }
 
+function processDrawableCanvas() {
+    let drawnImage = new Image();
+    drawnImage.src = drawableCanvas.toDataURL();
+    drawnImage.onload = function(){
+        let scaledDrawnImage = scaleImage(imageScale, drawnImage);
+        scaledDrawnImage.onload = function(){
+            canvas.width = scaledDrawnImage.width;
+            canvas.height = scaledDrawnImage.height;
+            context.drawImage(scaledDrawnImage, 0, 0);
+            const scannedImage = context.getImageData(0, 0, canvas.width, canvas.height);
+            const scannedData = scannedImage.data;
+            for (let i = 0; i < scannedData.length; i += 4) {
+                const averageColorValue = (scannedData[i] + scannedData[i + 1] + scannedData[i + 2]) / 3
+                // Make fully black and white
+                let newColorValue = 0;
+                if (averageColorValue > 127) {
+                    newColorValue = 255;
+                }
+                scannedData[i] = newColorValue;
+                scannedData[i + 1] = newColorValue;
+                scannedData[i + 2] = newColorValue;
+            }
+            scannedImage.data = scannedData;
+            context.putImageData(scannedImage, 0, 0);
+        
+            const colorProfiles = [];
+            for (let i = 0; i < verticalGlyphs; i++) {
+                for (let j = 0; j < horizontalGlyphs; j++) {
+                    let cell = analyzeCell(scannedData, j, i)
+                    colorProfiles.push(cell);
+                    // scannedImage.data = putCell(cell, scannedData, j, i);
+                    // context.putImageData(scannedImage, 0, 0);
+                }
+            }
+        
+            const imageInfo = {
+                colorProfiles: colorProfiles,
+                horizontalGlyphs: horizontalGlyphs,
+                verticalGlyphs: verticalGlyphs,
+                horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
+                verticalGlyphSkipRatio: verticalGlyphSkipRatio,
+                imageSource: imageSource
+            };
+    
+            output.setAttribute('rows', 5);
+            output.setAttribute('cols', 20);
+            output.innerHTML = 'Generating...';
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({imageInfo})
+            });
+            window.location.href = '/';
+        }
+    }
+}
+
 function scaleImage(numGlyphs, image) {
+    console.log("Image height: " + image.height);
+    console.log("Image width: " + image.width);
     const ratio = image.height / image.width;
     const tempCanvas = document.createElement('canvas');
     const tempContext = tempCanvas.getContext('2d');

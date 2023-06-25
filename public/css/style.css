@@ -35,4 +35,8 @@ p {
 
 .output-box {
     width:auto;
+    font-family: monospace;
+    letter-spacing: -0.075rem;
+    line-height: normal;
+    letter-spacing: -1.2px;
 }

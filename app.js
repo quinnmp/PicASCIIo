@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json({ limit: '500mb' }));
 app.use(express.static('public'));
 
-const usingDB = false;
+const usingDB = true;
 mongoose.connect(`mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`)
 
 const glyphProfileSchema = new mongoose.Schema ({
