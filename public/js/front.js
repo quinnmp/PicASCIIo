@@ -1,6 +1,7 @@
 const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
 const slider = document.getElementById('slider');
+const sliderText = document.getElementById('slider-width');
 const output = document.getElementById('ascii-output');
 let image = new Image();
 let imageSource = '#';
@@ -26,6 +27,7 @@ window.addEventListener('load', function() {
 
 slider.oninput = function() {
     imageScale = this.value;
+    sliderText.innerText = imageScale + " characters wide";
 }
 
 function makeBlackAndWhite() {

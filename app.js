@@ -10,7 +10,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json({ limit: '500mb' }));
 app.use(express.static('public'));
 
-// mongoose.connect(`mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`)
+const usingDB = false;
+mongoose.connect(`mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`)
 
 const glyphProfileSchema = new mongoose.Schema ({
     glyph: String,
@@ -21,10 +22,12 @@ const GlyphProfile = mongoose.model('GlyphProfile', glyphProfileSchema);
 
 let glyphProfileArray = new Array;
 async function retrieveGlyphProfiles() {
-    try {
-      glyphProfileArray = await GlyphProfile.find({}).exec();
-    } catch (e) {
-      console.log(e);
+    if( usingDB) {
+        try {
+        glyphProfileArray = await GlyphProfile.find({}).exec();
+        } catch (e) {
+        console.log(e);
+        }
     }
 }
 
