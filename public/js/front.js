@@ -4,9 +4,9 @@ const slider = document.getElementById("slider");
 const sliderText = document.getElementById("slider-width");
 const output = document.getElementById("ascii-output");
 const canvasCol = document.getElementById("canvas-col");
-const canvasColDiv = document.getElementById("canvas-col-div");
 let image = new Image();
 let imageSource = "#";
+let canvasImageData = document.getElementById("canvas-image-data");
 
 let horizontalGlyphs = 0;
 let verticalGlyphs = 0;
@@ -28,19 +28,19 @@ document.addEventListener("mousedown", setPosition);
 document.addEventListener("mouseenter", setPosition);
 
 function resize() {
+    let tempCanvasImageData = drawableContext.getImageData(
+        0,
+        0,
+        drawableCanvas.width,
+        drawableCanvas.height
+    );
     drawableCanvas.width = parseFloat(getComputedStyle(canvasCol).width) * 0.7;
     drawableCanvas.height = drawableCanvas.width;
-    console.log(canvasCol.getBoundingClientRect().left);
-    drawableCanvas.style.left =
-        canvasCol.getBoundingClientRect().left +
-        (canvasCol.getBoundingClientRect().right -
-            canvasCol.getBoundingClientRect().left) *
-            0.15 +
-        "px";
-    canvasColDiv.style.height = drawableCanvas.height + 50 + "px";
+    drawableCanvas.style.position = "relative";
     drawableContext = drawableCanvas.getContext("2d");
     drawableContext.fillStyle = "white";
     drawableContext.fillRect(0, 0, drawableCanvas.width, drawableCanvas.height);
+    drawableContext.putImageData(tempCanvasImageData, 0, 0);
 }
 
 function setPosition(e) {
@@ -67,6 +67,8 @@ function draw(e) {
 
 window.addEventListener("load", function () {
     resize();
+    console.log("Replacing image data");
+    drawableContext.drawImage(canvasImageData, 0, 0);
     image.src = imageSource;
     document
         .querySelector('input[type="file"]')
@@ -84,6 +86,11 @@ slider.oninput = function () {
     imageScale = this.value;
     sliderText.innerText = imageScale + " characters wide";
 };
+
+function clearCanvas() {
+    drawableContext.fillStyle = "white";
+    drawableContext.fillRect(0, 0, drawableCanvas.width, drawableCanvas.height);
+}
 
 function makeBlackAndWhite() {
     image = document.querySelector("img");
@@ -132,11 +139,12 @@ function makeBlackAndWhite() {
             horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
             verticalGlyphSkipRatio: verticalGlyphSkipRatio,
             imageSource: imageSource,
+            canvasImageData: canvasImageData,
         };
 
         output.setAttribute("rows", 5);
         output.setAttribute("cols", 20);
-        output.innerHTML = "Generating...";
+        output.innerHTML = "Generating from image...";
         fetch("/", {
             method: "POST",
             headers: {
@@ -151,6 +159,7 @@ function makeBlackAndWhite() {
 function processDrawableCanvas() {
     let drawnImage = new Image();
     drawnImage.src = drawableCanvas.toDataURL();
+    canvasImageData = drawnImage.src;
     drawnImage.onload = function () {
         let scaledDrawnImage = scaleImage(imageScale, drawnImage);
         scaledDrawnImage.onload = function () {
@@ -197,11 +206,12 @@ function processDrawableCanvas() {
                 horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
                 verticalGlyphSkipRatio: verticalGlyphSkipRatio,
                 imageSource: imageSource,
+                canvasImageData: canvasImageData,
             };
 
             output.setAttribute("rows", 5);
             output.setAttribute("cols", 20);
-            output.innerHTML = "Generating...";
+            output.innerHTML = "Generating from drawing...";
             fetch("/", {
                 method: "POST",
                 headers: {

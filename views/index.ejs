@@ -6,12 +6,13 @@
             <br>
             <input class="form-control" type="file">
             <br>
-            <button onclick="makeBlackAndWhite()" class="btn btn-light">Click to generate</button>
+            <button onclick="makeBlackAndWhite()" class="btn btn-light button">Click to generate</button>
         </div>
         <div class="col align-items-center" id="canvas-col">
             <canvas id="drawable-canvas"></canvas>
-            <div id="canvas-col-div"></div>
-            <button onclick="processDrawableCanvas()" class="btn btn-light">Click to generate</button>
+            <br>
+            <button onclick="processDrawableCanvas()" class="btn btn-light mt-5 button"><em>Click to generate</em></button>
+            <button onclick="clearCanvas()" class="btn btn-light mt-5 button"><em>Clear</em></button>
         </div>
     </div>
     <div class="row p-3">
@@ -19,6 +20,7 @@
         <input type="range" class="form-range mb-5" min="10" max="100" value="20" step="1.0" id="slider"></input>
         <textarea class="output-box" id="ascii-output" name="ascii-output" rows="<%=rows%>" cols="<%=cols%>"><%=output%></textarea>
         <canvas id="img-canvas"></canvas>
+        <img src="<%=canvasImageData%>" id="canvas-image-data" class="visually-hidden">
     </div>
 </div>
 <%- include("partials/footer"); -%>

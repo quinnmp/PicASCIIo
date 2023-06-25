@@ -1,5 +1,5 @@
 body {
-    background: #18122B;
+    background: #635985;
 }
 
 textarea {
@@ -7,7 +7,7 @@ textarea {
 }
 
 p {
-    color: #635985;
+    color: #393053;
 }
 
 #img-canvas {
@@ -15,9 +15,11 @@ p {
 }
 
 #img-to-ascii {
-    border: 3px solid #393053;
-    color: #635985;
+    border: 6px solid #393053;
+    color: #393053;
     font-family: monospace;
+    font-size: larger;
+    font-weight: bolder;
     background-color: 443C68;
     max-width: 90%;
     max-height: 50%;
@@ -25,7 +27,7 @@ p {
 
 #drawable-canvas {
     background-color: white;
-    position:absolute;
+    position: relative;
     top: 5%;
 }
 
@@ -33,10 +35,30 @@ p {
     top: 15vh;
 }
 
+.button {
+    background-color: #443c68;
+    border: 6px solid #18122b;
+    color: #18122b;
+    font-size: larger;
+    font-weight: bolder;
+}
+
 .output-box {
-    width:auto;
+    width: auto;
     font-family: monospace;
     letter-spacing: -0.075rem;
     line-height: normal;
     letter-spacing: -1.2px;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #393053;
+}
+
+.form-range::-moz-range-thumb {
+    background: #393053;
+}
+
+.form-range::-ms-thumb {
+    background: #393053;
 }

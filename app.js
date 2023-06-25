@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(express.static("public"));
 
-const usingDB = true;
+const usingDB = false;
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`
 );
@@ -39,6 +39,7 @@ retrieveGlyphProfiles().then(() => {
     let cols = 20;
 
     let imageSource = "#";
+    let canvasImageData = "#";
 
     app.get("/", function (req, res) {
         res.render("index", {
@@ -46,6 +47,7 @@ retrieveGlyphProfiles().then(() => {
             rows: rows,
             cols: cols,
             imageSource: imageSource,
+            canvasImageData: canvasImageData,
         });
     });
 
@@ -66,6 +68,7 @@ retrieveGlyphProfiles().then(() => {
         const verticalGlyphSkipRatio =
             req.body.imageInfo.verticalGlyphSkipRatio;
         imageSource = req.body.imageInfo.imageSource;
+        canvasImageData = req.body.imageInfo.canvasImageData;
 
         outputText = "";
         profiles.forEach((profileElement, index) => {
