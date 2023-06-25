@@ -3,6 +3,8 @@ const context = canvas.getContext('2d');
 const slider = document.getElementById('slider');
 const sliderText = document.getElementById('slider-width');
 const output = document.getElementById('ascii-output');
+const canvasCol = document.getElementById('canvas-col');
+const canvasColDiv = document.getElementById('canvas-col-div');
 let image = new Image();
 let imageSource = '#';
 
@@ -12,6 +14,49 @@ let horizontalGlyphSkipRatio = 1;
 let verticalGlyphSkipRatio = 1;
 
 let imageScale = 20;
+
+var drawableCanvas = document.getElementById('drawable-canvas');
+document.body.style.margin = 0;
+drawableCanvas.style.position = 'fixed';
+
+var drawableContext = drawableCanvas.getContext('2d');
+
+var pos = { x: 0, y: 0 };
+window.addEventListener('resize', resize);
+document.addEventListener('mousemove', draw);
+document.addEventListener('mousedown', setPosition);
+document.addEventListener('mouseenter', setPosition);
+
+function resize() {
+    drawableCanvas.width = parseFloat(getComputedStyle(canvasCol).width) * 0.7;
+    drawableCanvas.height = drawableCanvas.width;
+    console.log(canvasCol.getBoundingClientRect().left);
+    drawableCanvas.style.left = (canvasCol.getBoundingClientRect().left + ((canvasCol.getBoundingClientRect().right - canvasCol.getBoundingClientRect().left) * 0.15)) + "px";
+    canvasColDiv.style.height = (drawableCanvas.height + 50) + "px";
+    drawableContext = drawableCanvas.getContext('2d');
+}
+
+function setPosition(e) {
+    let rect = drawableCanvas.getBoundingClientRect();
+    pos.x = e.clientX - rect.left;
+    pos.y = e.clientY - rect.top;
+}
+
+function draw(e) {
+  if (e.buttons !== 1) return;
+
+  drawableContext.beginPath();
+
+  drawableContext.lineWidth = 5;
+  drawableContext.lineCap = 'round';
+  drawableContext.strokeStyle = 'black';
+
+  drawableContext.moveTo(pos.x, pos.y);
+  setPosition(e);
+  drawableContext.lineTo(pos.x, pos.y);
+
+  drawableContext.stroke();
+}
 
 window.addEventListener('load', function() {
     image.src = imageSource;

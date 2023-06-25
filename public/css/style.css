@@ -23,6 +23,16 @@ p {
     max-height: 50%;
 }
 
+#drawable-canvas {
+    background-color: white;
+    position:absolute;
+    top: 5%;
+}
+
+#canvas-col-div {
+    top: 15vh;
+}
+
 .output-box {
     width:auto;
 }
