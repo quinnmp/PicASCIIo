@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>PicASCIIo</title>
-    <link rel="stylesheet" href="/css/style.css">
-  </head>
-  <body>
-    <canvas id="img-canvas" onclick="makeBlackAndWhite()"></canvas>
-	<script src="/js/front.js"></script>
-  </body>
-</html>
+<%- include("partials/header"); -%>
+<input type='file' />
+<br><img id="img-to-ascii" src=<%=imageSource%> alt="Please upload an image!!"></img>
+<input type="range" min="10" max="100" value="20" id="slider">
+<button onclick="makeBlackAndWhite()">Click for ASCII</button>
+<textarea id="ascii-output" name="ascii-output" rows="<%=rows%>" cols="<%=cols%>"><%=output%></textarea>
+<canvas id="img-canvas"></canvas>
+<%- include("partials/footer"); -%>

@@ -1,61 +1,87 @@
 const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
-
+const slider = document.getElementById("slider");
+const output = document.getElementById("ascii-output");
 let image = new Image();
-image.src = 'images/circle.jpg';
+let imageSource = "#";
 
 let horizontalGlyphs = 0;
 let verticalGlyphs = 0;
 let horizontalGlyphSkipRatio = 1;
 let verticalGlyphSkipRatio = 1;
 
-image.addEventListener('load', function(){
-    image = scaleImage(100, image);
-    canvas.width = image.width;
-    canvas.height = image.height;
-    context.drawImage(image, 0, 0);
-})
+let imageScale = 20;
+
+window.addEventListener('load', function() {
+    image.src = imageSource;
+    document.querySelector('input[type="file"]').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            image = document.querySelector('img');
+  
+            console.log(this.files[0]);
+            image.src = URL.createObjectURL(this.files[0])
+            imageSource = //Data URL
+        }
+    });
+});
+
+slider.oninput = function() {
+    imageScale = this.value;
+}
 
 function makeBlackAndWhite() {
-    const scannedImage = context.getImageData(0, 0, canvas.width, canvas.height);
-    const scannedData = scannedImage.data;
-    for (let i = 0; i < scannedData.length; i += 4) {
-        const averageColorValue = (scannedData[i] + scannedData[i + 1] + scannedData[i + 2]) / 3
-        let newColorValue = 0;
-        if (averageColorValue > 127) {
-            newColorValue = 255;
+    image = scaleImage(imageScale, image);
+    image.onload = function(){
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+        const scannedImage = context.getImageData(0, 0, canvas.width, canvas.height);
+        const scannedData = scannedImage.data;
+        for (let i = 0; i < scannedData.length; i += 4) {
+            const averageColorValue = (scannedData[i] + scannedData[i + 1] + scannedData[i + 2]) / 3
+            // Make fully black and white
+            let newColorValue = 0;
+            if (averageColorValue > 127) {
+                newColorValue = 255;
+            }
+            scannedData[i] = newColorValue;
+            scannedData[i + 1] = newColorValue;
+            scannedData[i + 2] = newColorValue;
         }
-        scannedData[i] = newColorValue;
-        scannedData[i + 1] = newColorValue;
-        scannedData[i + 2] = newColorValue;
-    }
-    scannedImage.data = scannedData;
-    context.putImageData(scannedImage, 0, 0);
-
-    const colorProfiles = [];
-    for (let i = 0; i < verticalGlyphs; i++) {
-        for (let j = 0; j < horizontalGlyphs; j++) {
-            let cell = analyzeCell(scannedData, j, i)
-            colorProfiles.push(cell);
-            scannedImage.data = putCell(cell, scannedData, j, i);
-            context.putImageData(scannedImage, 0, 0);
+        scannedImage.data = scannedData;
+        context.putImageData(scannedImage, 0, 0);
+    
+        const colorProfiles = [];
+        for (let i = 0; i < verticalGlyphs; i++) {
+            for (let j = 0; j < horizontalGlyphs; j++) {
+                let cell = analyzeCell(scannedData, j, i)
+                colorProfiles.push(cell);
+                // scannedImage.data = putCell(cell, scannedData, j, i);
+                // context.putImageData(scannedImage, 0, 0);
+            }
         }
+    
+        const imageInfo = {
+            colorProfiles: colorProfiles,
+            horizontalGlyphs: horizontalGlyphs,
+            verticalGlyphs: verticalGlyphs,
+            horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
+            verticalGlyphSkipRatio: verticalGlyphSkipRatio,
+            imageSource: imageSource
+        };
+
+        output.setAttribute("rows", 5);
+        output.setAttribute("cols", 20);
+        output.innerHTML = "Generating...";
+        fetch('/', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({imageInfo})
+        });
+        window.location.href = '/';
     }
-
-    const imageInfo = {
-        colorProfiles: colorProfiles,
-        horizontalGlyphs: horizontalGlyphs,
-        horizontalGlyphSkipRatio: horizontalGlyphSkipRatio,
-        verticalGlyphSkipRatio: verticalGlyphSkipRatio
-    };
-
-    fetch('/', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({imageInfo})
-    });
 }
 
 function scaleImage(numGlyphs, image) {
@@ -87,7 +113,6 @@ function scaleImage(numGlyphs, image) {
 
     console.log("horizontalGlyphSkipRatio: " + horizontalGlyphSkipRatio);
     console.log("verticalGlyphSkipRatio: " + verticalGlyphSkipRatio);
-
     return scaledImage;
 }
 
@@ -150,4 +175,8 @@ function roundToNearestHeightFactor(number) {
         }
     });
     return lowestDistanceFactor;
+}
+
+function updateOutputTextbox(output) {
+    console.log(output);
 }

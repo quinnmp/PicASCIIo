@@ -2,9 +2,36 @@ body {
     background: #18122B;
 }
 
+textarea {
+    letter-spacing: -0.075rem;
+}
+
 #img-canvas {
+    display: none;
+}
+
+#img-to-ascii {
     border: 3px solid #393053;
     top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    color: #635985;
+    font-family: monospace;
+    background-color: 443C68;
+    max-width: 300px;
+    max-height: 300px;
+}
+
+#slider {
+    top: 60%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+#ascii-output {
+    top: 90%;
     left: 50%;
     position: absolute;
     transform: translate(-50%, -50%);
