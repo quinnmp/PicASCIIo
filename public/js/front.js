@@ -1,9 +1,9 @@
 const canvas = document.getElementById('img-canvas');
 const context = canvas.getContext('2d');
-const slider = document.getElementById("slider");
-const output = document.getElementById("ascii-output");
+const slider = document.getElementById('slider');
+const output = document.getElementById('ascii-output');
 let image = new Image();
-let imageSource = "#";
+let imageSource = '#';
 
 let horizontalGlyphs = 0;
 let verticalGlyphs = 0;
@@ -18,9 +18,8 @@ window.addEventListener('load', function() {
         if (this.files && this.files[0]) {
             image = document.querySelector('img');
   
-            console.log(this.files[0]);
             image.src = URL.createObjectURL(this.files[0])
-            imageSource = //Data URL
+            imageSource = image.src;
         }
     });
 });
@@ -30,6 +29,8 @@ slider.oninput = function() {
 }
 
 function makeBlackAndWhite() {
+    image = document.querySelector('img');
+    imageSource = image.getAttribute('src');
     image = scaleImage(imageScale, image);
     image.onload = function(){
         canvas.width = image.width;
@@ -70,13 +71,13 @@ function makeBlackAndWhite() {
             imageSource: imageSource
         };
 
-        output.setAttribute("rows", 5);
-        output.setAttribute("cols", 20);
-        output.innerHTML = "Generating...";
+        output.setAttribute('rows', 5);
+        output.setAttribute('cols', 20);
+        output.innerHTML = 'Generating...';
         fetch('/', {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json"
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({imageInfo})
         });
@@ -101,18 +102,18 @@ function scaleImage(numGlyphs, image) {
     verticalGlyphSkipRatio = roundToNearestHeightFactor((verticalGlyphs * 312) / ((1 / horizontalGlyphSkipRatio) * calculatedHeight));
     tempCanvas.height = Math.floor((1 / verticalGlyphSkipRatio) * (verticalGlyphs * 312));
 
-    console.log("Horizontal resolution: " + tempCanvas.width);
-    console.log("Vertical resolution: " + tempCanvas.height);
+    console.log('Horizontal resolution: ' + tempCanvas.width);
+    console.log('Vertical resolution: ' + tempCanvas.height);
 
     tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
 
     const scaledImage = new Image();
     scaledImage.src = tempCanvas.toDataURL();
 
-    console.log("Vertical glyphs: " + verticalGlyphs);
+    console.log('Vertical glyphs: ' + verticalGlyphs);
 
-    console.log("horizontalGlyphSkipRatio: " + horizontalGlyphSkipRatio);
-    console.log("verticalGlyphSkipRatio: " + verticalGlyphSkipRatio);
+    console.log('horizontalGlyphSkipRatio: ' + horizontalGlyphSkipRatio);
+    console.log('verticalGlyphSkipRatio: ' + verticalGlyphSkipRatio);
     return scaledImage;
 }
 
