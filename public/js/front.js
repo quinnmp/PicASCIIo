@@ -4,6 +4,9 @@ const slider = document.getElementById("slider");
 const sliderText = document.getElementById("slider-width");
 const output = document.getElementById("ascii-output");
 const canvasCol = document.getElementById("canvas-col");
+const imageGenerationButton = document.getElementById(
+    "image-generation-button"
+);
 let image = new Image();
 let imageSource = "#";
 let canvasImageData = document.getElementById("canvas-image-data");
@@ -13,7 +16,7 @@ let verticalGlyphs = 0;
 let horizontalGlyphSkipRatio = 1;
 let verticalGlyphSkipRatio = 1;
 
-let imageScale = 20;
+let imageScale = slider.value;
 
 var drawableCanvas = document.getElementById("drawable-canvas");
 document.body.style.margin = 0;
@@ -68,13 +71,20 @@ function draw(e) {
 window.addEventListener("load", function () {
     resize();
     console.log("Replacing image data");
-    drawableContext.drawImage(canvasImageData, 0, 0);
+    if (canvasImageData.getAttribute("src") !== "#") {
+        drawableContext.drawImage(canvasImageData, 0, 0);
+    }
     image.src = imageSource;
+    if (imageSource !== "#") {
+        imageGenerationButton.removeAttribute("disabled");
+    }
     document
-        .querySelector('input[type="file"]')
+        .getElementById("image-input")
         .addEventListener("change", function () {
+            console.log("File uploaded");
             if (this.files && this.files[0]) {
-                image = document.querySelector("img");
+                imageGenerationButton.removeAttribute("disabled");
+                image = document.getElementById("img-to-ascii");
 
                 image.src = URL.createObjectURL(this.files[0]);
                 imageSource = image.src;
@@ -93,6 +103,9 @@ function clearCanvas() {
 }
 
 function makeBlackAndWhite() {
+    let drawnImage = new Image();
+    drawnImage.src = drawableCanvas.toDataURL();
+    canvasImageData = drawnImage.src;
     image = document.querySelector("img");
     imageSource = image.getAttribute("src");
     image = scaleImage(imageScale, image);
@@ -110,14 +123,21 @@ function makeBlackAndWhite() {
         for (let i = 0; i < scannedData.length; i += 4) {
             const averageColorValue =
                 (scannedData[i] + scannedData[i + 1] + scannedData[i + 2]) / 3;
-            // Make fully black and white
-            let newColorValue = 0;
-            if (averageColorValue > 127) {
-                newColorValue = 255;
+            if (scannedData[i + 3] === 0.0) {
+                scannedData[i] = 255;
+                scannedData[i + 1] = 255;
+                scannedData[i + 2] = 255;
+                scannedData[i + 3] = 255;
+            } else {
+                // Make fully black and white
+                let newColorValue = 0;
+                if (averageColorValue > 127) {
+                    newColorValue = 255;
+                }
+                scannedData[i] = newColorValue;
+                scannedData[i + 1] = newColorValue;
+                scannedData[i + 2] = newColorValue;
             }
-            scannedData[i] = newColorValue;
-            scannedData[i + 1] = newColorValue;
-            scannedData[i + 2] = newColorValue;
         }
         scannedImage.data = scannedData;
         context.putImageData(scannedImage, 0, 0);
@@ -132,6 +152,7 @@ function makeBlackAndWhite() {
             }
         }
 
+        console.log(imageGenerationButton.hasAttribute("disabled"));
         const imageInfo = {
             colorProfiles: colorProfiles,
             horizontalGlyphs: horizontalGlyphs,
@@ -140,6 +161,7 @@ function makeBlackAndWhite() {
             verticalGlyphSkipRatio: verticalGlyphSkipRatio,
             imageSource: imageSource,
             canvasImageData: canvasImageData,
+            generationDisabled: imageGenerationButton.hasAttribute("disabled"),
         };
 
         output.setAttribute("rows", 5);
@@ -160,6 +182,10 @@ function processDrawableCanvas() {
     let drawnImage = new Image();
     drawnImage.src = drawableCanvas.toDataURL();
     canvasImageData = drawnImage.src;
+
+    image = document.querySelector("img");
+    imageSource = image.getAttribute("src");
+
     drawnImage.onload = function () {
         let scaledDrawnImage = scaleImage(imageScale, drawnImage);
         scaledDrawnImage.onload = function () {
@@ -177,14 +203,21 @@ function processDrawableCanvas() {
                 const averageColorValue =
                     (scannedData[i] + scannedData[i + 1] + scannedData[i + 2]) /
                     3;
-                // Make fully black and white
-                let newColorValue = 0;
-                if (averageColorValue > 127) {
-                    newColorValue = 255;
+                if (scannedData[i + 3] !== 255) {
+                    scannedData[i] = 255;
+                    scannedData[i + 1] = 255;
+                    scannedData[i + 2] = 255;
+                    scannedData[i + 3] = 255;
+                } else {
+                    // Make fully black and white
+                    let newColorValue = 0;
+                    if (averageColorValue > 127) {
+                        newColorValue = 255;
+                    }
+                    scannedData[i] = newColorValue;
+                    scannedData[i + 1] = newColorValue;
+                    scannedData[i + 2] = newColorValue;
                 }
-                scannedData[i] = newColorValue;
-                scannedData[i + 1] = newColorValue;
-                scannedData[i + 2] = newColorValue;
             }
             scannedImage.data = scannedData;
             context.putImageData(scannedImage, 0, 0);
@@ -207,6 +240,8 @@ function processDrawableCanvas() {
                 verticalGlyphSkipRatio: verticalGlyphSkipRatio,
                 imageSource: imageSource,
                 canvasImageData: canvasImageData,
+                generationDisabled:
+                    imageGenerationButton.hasAttribute("disabled"),
             };
 
             output.setAttribute("rows", 5);
@@ -224,14 +259,14 @@ function processDrawableCanvas() {
     };
 }
 
-function scaleImage(numGlyphs, image) {
-    console.log("Image height: " + image.height);
-    console.log("Image width: " + image.width);
-    const ratio = image.height / image.width;
+function scaleImage(numGlyphs, imageToScale) {
+    console.log("Image height: " + imageToScale.height);
+    console.log("Image width: " + imageToScale.width);
+    const ratio = imageToScale.height / imageToScale.width;
     const tempCanvas = document.createElement("canvas");
     const tempContext = tempCanvas.getContext("2d");
 
-    let originalWidth = image.width;
+    let originalWidth = imageToScale.width;
 
     horizontalGlyphs = numGlyphs;
     const scaledHeight = ratio * horizontalGlyphs * 128;
@@ -255,7 +290,13 @@ function scaleImage(numGlyphs, image) {
     console.log("Horizontal resolution: " + tempCanvas.width);
     console.log("Vertical resolution: " + tempCanvas.height);
 
-    tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
+    tempContext.drawImage(
+        imageToScale,
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
 
     const scaledImage = new Image();
     scaledImage.src = tempCanvas.toDataURL();
@@ -276,7 +317,7 @@ function analyzeCell(scannedData, horizontalCell, verticalCell) {
             j += 1
         ) {
             position = Math.round(
-                i * image.width * 4 +
+                i * ((horizontalGlyphs * 128) / horizontalGlyphSkipRatio) * 4 +
                     j * 4 +
                     horizontalCell * (128 / horizontalGlyphSkipRatio) * 4 +
                     verticalCell *

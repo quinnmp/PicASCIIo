@@ -1,23 +1,25 @@
 <%- include("partials/header"); -%>
 <div class="container text-center">
-    <div class="row">
-        <div class="col">
+    <div class="row m-3">
+        <div class="col m-3 p-3 rounded">
             <img class="rounded img-fluid m-3" id="img-to-ascii" src=<%=imageSource%> alt="Please upload an image!!"></img>
             <br>
-            <input class="form-control" type="file">
+            <input class="form-control" id="image-input" type="file">
             <br>
-            <button onclick="makeBlackAndWhite()" class="btn btn-light button">Click to generate</button>
+            <button onclick="makeBlackAndWhite()" class="btn btn-light" id="image-generation-button" <% if(generationDisabled) { %> 
+                disabled 
+                <% } %>> Click to generate</button>
         </div>
-        <div class="col align-items-center" id="canvas-col">
+        <div class="col m-3 p-3 align-items-center rounded" id="canvas-col">
             <canvas id="drawable-canvas"></canvas>
             <br>
-            <button onclick="processDrawableCanvas()" class="btn btn-light mt-5 button"><em>Click to generate</em></button>
-            <button onclick="clearCanvas()" class="btn btn-light mt-5 button"><em>Clear</em></button>
+            <button onclick="processDrawableCanvas()" class="btn btn-light mt-5"><em>Click to generate</em></button>
+            <button onclick="clearCanvas()" class="btn btn-light mt-5"><em>Clear</em></button>
         </div>
     </div>
-    <div class="row p-3">
-        <p class="fs-1" id="slider-width">20 characters wide</p>
-        <input type="range" class="form-range mb-5" min="10" max="100" value="20" step="1.0" id="slider"></input>
+    <div class="col p-3 rounded mb-5">
+        <p class="fs-1" id="slider-width"><%=horizontalGlyphs%> characters wide</p>
+        <input type="range" class="form-range mb-5" min="10" max="100" value=<%=horizontalGlyphs%> step="1.0" id="slider"></input>
         <textarea class="output-box" id="ascii-output" name="ascii-output" rows="<%=rows%>" cols="<%=cols%>"><%=output%></textarea>
         <canvas id="img-canvas"></canvas>
         <img src="<%=canvasImageData%>" id="canvas-image-data" class="visually-hidden">

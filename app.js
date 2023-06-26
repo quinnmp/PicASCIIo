@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(express.static("public"));
 
-const usingDB = false;
+const usingDB = true;
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`
 );
@@ -40,6 +40,8 @@ retrieveGlyphProfiles().then(() => {
 
     let imageSource = "#";
     let canvasImageData = "#";
+    let generationDisabled = true;
+    let horizontalGlyphs = 20;
 
     app.get("/", function (req, res) {
         res.render("index", {
@@ -48,6 +50,8 @@ retrieveGlyphProfiles().then(() => {
             cols: cols,
             imageSource: imageSource,
             canvasImageData: canvasImageData,
+            generationDisabled: generationDisabled,
+            horizontalGlyphs: horizontalGlyphs,
         });
     });
 
@@ -59,7 +63,7 @@ retrieveGlyphProfiles().then(() => {
 
         // glyphProfile.save();
         const profiles = req.body.imageInfo.colorProfiles;
-        const horizontalGlyphs = req.body.imageInfo.horizontalGlyphs;
+        horizontalGlyphs = req.body.imageInfo.horizontalGlyphs;
         cols = horizontalGlyphs;
         const verticalGlyphs = req.body.imageInfo.verticalGlyphs;
         rows = verticalGlyphs;
@@ -69,6 +73,7 @@ retrieveGlyphProfiles().then(() => {
             req.body.imageInfo.verticalGlyphSkipRatio;
         imageSource = req.body.imageInfo.imageSource;
         canvasImageData = req.body.imageInfo.canvasImageData;
+        generationDisabled = req.body.imageInfo.generationDisabled;
 
         outputText = "";
         profiles.forEach((profileElement, index) => {
@@ -108,7 +113,6 @@ retrieveGlyphProfiles().then(() => {
             }
             outputText = outputText.concat(lowestDifferenceGlyph);
         });
-        console.log(outputText);
     });
 
     app.listen(process.env.PORT || 8008, function () {

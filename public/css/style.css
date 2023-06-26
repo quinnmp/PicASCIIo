@@ -35,12 +35,47 @@ p {
     top: 15vh;
 }
 
-.button {
+.col {
+    border: 16px solid #393053;
+}
+
+.btn {
     background-color: #443c68;
     border: 6px solid #18122b;
     color: #18122b;
     font-size: larger;
     font-weight: bolder;
+}
+
+button:disabled,
+.btn:disabled {
+    background-color: #635985;
+    color: #443c68;
+    border: 6px solid #443c68;
+}
+
+button:disabled:hover,
+.btn:disabled:hover {
+    background-color: #635985;
+    color: #443c68;
+    border: 6px solid #443c68;
+}
+
+.navbar {
+    background-color: #18122b;
+    text-align: center;
+    color: #635985;
+}
+
+.navbar-brand {
+    font-family: monospace;
+    font-size: 100px;
+    font-weight: bolder;
+    color: #635985;
+}
+
+.navbar-brand:hover {
+    color: #393053;
 }
 
 .output-box {
