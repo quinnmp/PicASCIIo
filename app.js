@@ -10,6 +10,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(express.static("public"));
 
+const corsUrl =
+    process.env.NODE_ENV !== "production"
+        ? "http://localhost:8008"
+        : "https://picasci-io.onrender.com/";
+app.use(cors({ origin: corsUrl }));
+
 const usingDB = true;
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@glyphprofiles.9prttyb.mongodb.net/?retryWrites=true&w=majority`
