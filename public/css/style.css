@@ -10,6 +10,10 @@ p {
     color: #393053;
 }
 
+footer {
+    background-color: #393053;
+}
+
 #img-canvas {
     display: none;
 }
@@ -33,6 +37,19 @@ p {
 
 #canvas-col-div {
     top: 15vh;
+}
+
+.footer-text {
+    color: #635985;
+}
+
+.bi-github {
+    position: relative;
+    top: 10px;
+}
+
+.bi-github:hover {
+    fill: #18122b;
 }
 
 .col {
