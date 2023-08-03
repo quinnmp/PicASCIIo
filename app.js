@@ -113,6 +113,7 @@ retrieveGlyphProfiles().then(() => {
             }
             outputText = outputText.concat(lowestDifferenceGlyph);
         });
+        res.send(JSON.stringify({ status: "success" }));
     });
 
     app.listen(process.env.PORT || 8008, function () {

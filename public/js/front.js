@@ -167,14 +167,21 @@ function makeBlackAndWhite() {
         output.setAttribute("rows", 5);
         output.setAttribute("cols", 20);
         output.innerHTML = "Generating from image...";
-        await fetch("/", {
+        fetch("/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ imageInfo }),
-        });
-        window.location.href = "/";
+        })
+            .then((response) => {
+                return response.json();
+            })
+            .then(async (data) => {
+                if (data.status === "success") {
+                    window.location.href = "/";
+                }
+            });
     };
 }
 
@@ -253,8 +260,15 @@ function processDrawableCanvas() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ imageInfo }),
-            });
-            window.location.href = "/";
+            })
+                .then((response) => {
+                    return response.json();
+                })
+                .then(async (data) => {
+                    if (data.status === "success") {
+                        window.location.href = "/";
+                    }
+                });
         };
     };
 }
