@@ -109,7 +109,7 @@ function makeBlackAndWhite() {
     image = document.querySelector("img");
     imageSource = image.getAttribute("src");
     image = scaleImage(imageScale, image);
-    image.onload = function () {
+    image.onload = async function () {
         canvas.width = image.width;
         canvas.height = image.height;
         context.drawImage(image, 0, 0);
@@ -167,7 +167,7 @@ function makeBlackAndWhite() {
         output.setAttribute("rows", 5);
         output.setAttribute("cols", 20);
         output.innerHTML = "Generating from image...";
-        fetch("/", {
+        await fetch("/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
