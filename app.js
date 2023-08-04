@@ -76,9 +76,9 @@ retrieveGlyphProfiles().then(() => {
         const verticalGlyphSkipRatio = imageInfo.verticalGlyphSkipRatio;
         const verticalGlyphs = imageInfo.verticalGlyphs;
         rows = verticalGlyphs;
-        imageSource = req.body.imageInfo.imageSource;
-        canvasImageData = req.body.imageInfo.canvasImageData;
-        generationDisabled = req.body.imageInfo.generationDisabled;
+        imageSource = imageInfo.imageSource;
+        canvasImageData = imageInfo.canvasImageData;
+        generationDisabled = imageInfo.generationDisabled;
 
         outputText = "";
 
