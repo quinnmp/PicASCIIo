@@ -22,10 +22,16 @@ const glyphProfileSchema = new mongoose.Schema({
 const GlyphProfile = mongoose.model("GlyphProfile", glyphProfileSchema);
 
 let glyphProfileArray = new Array();
+let comparedProfiles = [];
 async function retrieveGlyphProfiles() {
     if (usingDB) {
         try {
             glyphProfileArray = await GlyphProfile.find({}).exec();
+
+            // Pre-process glyph profiles for faster access
+            comparedProfiles = glyphProfileArray.map(
+                (element) => element.profile
+            );
         } catch (e) {
             console.log(e);
         }
@@ -62,20 +68,28 @@ retrieveGlyphProfiles().then(() => {
 
         // glyphProfile.save();
         console.log("POST /");
-        const profiles = req.body.imageInfo.colorProfiles;
-        horizontalGlyphs = req.body.imageInfo.horizontalGlyphs;
+        const imageInfo = req.body.imageInfo;
+        const profiles = imageInfo.colorProfiles;
+        horizontalGlyphs = imageInfo.horizontalGlyphs;
         cols = horizontalGlyphs;
-        const verticalGlyphs = req.body.imageInfo.verticalGlyphs;
+        const horizontalGlyphSkipRatio = imageInfo.horizontalGlyphSkipRatio;
+        const verticalGlyphSkipRatio = imageInfo.verticalGlyphSkipRatio;
+        const verticalGlyphs = imageInfo.verticalGlyphs;
         rows = verticalGlyphs;
-        const horizontalGlyphSkipRatio =
-            req.body.imageInfo.horizontalGlyphSkipRatio;
-        const verticalGlyphSkipRatio =
-            req.body.imageInfo.verticalGlyphSkipRatio;
         imageSource = req.body.imageInfo.imageSource;
         canvasImageData = req.body.imageInfo.canvasImageData;
         generationDisabled = req.body.imageInfo.generationDisabled;
 
         outputText = "";
+
+        // Pre-calculate the positions used in the loops
+        const positionCache = {};
+        for (let i = 0; i < profiles[0].length; i++) {
+            positionCache[i] =
+                Math.floor((i * horizontalGlyphSkipRatio) / 128) *
+                (verticalGlyphSkipRatio * 128);
+        }
+
         for (
             let profileIndex = 0;
             profileIndex < profiles.length;
@@ -87,13 +101,11 @@ retrieveGlyphProfiles().then(() => {
             let skipComparisons = false;
 
             // Check against blank symbol
-            const comparedProfile = glyphProfileArray[94].profile;
+            const comparedProfile = comparedProfiles[94];
 
             let differences = 0;
             for (let i = 0; i < profileElement.length; i++) {
-                let position =
-                    Math.floor((i * horizontalGlyphSkipRatio) / 128) *
-                    (verticalGlyphSkipRatio * 128);
+                const position = positionCache[i];
                 differences += Math.abs(
                     profileElement[i] -
                         comparedProfile[
@@ -112,17 +124,14 @@ retrieveGlyphProfiles().then(() => {
             if (!skipComparisons) {
                 for (
                     let glyphIndex = 0;
-                    glyphIndex < glyphProfileArray.length;
+                    glyphIndex < comparedProfiles.length;
                     glyphIndex++
                 ) {
-                    const element = glyphProfileArray[glyphIndex];
-                    const comparedProfile = element.profile;
+                    const comparedProfile = comparedProfiles[glyphIndex];
 
                     differences = 0;
                     for (let i = 0; i < profileElement.length; i++) {
-                        let position =
-                            Math.floor((i * horizontalGlyphSkipRatio) / 128) *
-                            (verticalGlyphSkipRatio * 128);
+                        const position = positionCache[i];
                         differences += Math.abs(
                             profileElement[i] -
                                 comparedProfile[
@@ -137,14 +146,15 @@ retrieveGlyphProfiles().then(() => {
                             lowestDifferenceGlyph === "_")
                     ) {
                         lowestDifference = differences;
-                        lowestDifferenceGlyph = element.glyph;
+                        lowestDifferenceGlyph =
+                            glyphProfileArray[glyphIndex].glyph;
                     }
                 }
             }
             if (profileIndex % horizontalGlyphs === 0 && profileIndex > 0) {
-                outputText = outputText.concat("\n");
+                outputText += "\n";
             }
-            outputText = outputText.concat(lowestDifferenceGlyph);
+            outputText += lowestDifferenceGlyph;
         }
 
         res.send(JSON.stringify({ status: "success" }));
