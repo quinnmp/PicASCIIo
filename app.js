@@ -79,35 +79,58 @@ retrieveGlyphProfiles().then(() => {
         profiles.forEach((profileElement, index) => {
             let lowestDifference = Number.MAX_SAFE_INTEGER;
             let lowestDifferenceGlyph = "";
-            glyphProfileArray.forEach((element) => {
-                const comparedProfile = element.profile;
+            let skipComparisons = false;
 
-                let differences = 0;
-                for (let i = 0; i < profileElement.length; i++) {
-                    let position =
-                        Math.floor((i * horizontalGlyphSkipRatio) / 128) *
-                        (verticalGlyphSkipRatio * 128);
-                    // console.log('Profile element ' + profileElement[i]);
-                    // console.log('Compared element ' + comparedProfile[position + ((i * horizontalGlyphSkipRatio) % 128)]);
-                    differences += Math.abs(
-                        profileElement[i] -
-                            comparedProfile[
-                                position +
-                                    ((i * horizontalGlyphSkipRatio) % 128)
-                            ]
-                    );
-                }
+            // Check against blank symbol
+            const comparedProfile = glyphProfileArray[94].profile;
 
-                // console.log('Glyph similarity to ' + element.glyph + ': ' + similarities / profileElement.length);
-                if (
-                    differences < lowestDifference ||
-                    (differences === lowestDifference &&
-                        lowestDifferenceGlyph === "_")
-                ) {
-                    lowestDifference = differences;
-                    lowestDifferenceGlyph = element.glyph;
-                }
-            });
+            let differences = 0;
+            for (let i = 0; i < profileElement.length; i++) {
+                let position =
+                    Math.floor((i * horizontalGlyphSkipRatio) / 128) *
+                    (verticalGlyphSkipRatio * 128);
+                differences += Math.abs(
+                    profileElement[i] -
+                        comparedProfile[
+                            position + ((i * horizontalGlyphSkipRatio) % 128)
+                        ]
+                );
+            }
+            if (differences === 0) {
+                lowestDifferenceGlyph = " ";
+                skipComparisons = true;
+            } else if (differences / profileElement.length === 255) {
+                lowestDifferenceGlyph = "#";
+                skipComparisons = true;
+            }
+
+            if (!skipComparisons) {
+                glyphProfileArray.forEach((element) => {
+                    const comparedProfile = element.profile;
+
+                    differences = 0;
+                    for (let i = 0; i < profileElement.length; i++) {
+                        let position =
+                            Math.floor((i * horizontalGlyphSkipRatio) / 128) *
+                            (verticalGlyphSkipRatio * 128);
+                        differences += Math.abs(
+                            profileElement[i] -
+                                comparedProfile[
+                                    position +
+                                        ((i * horizontalGlyphSkipRatio) % 128)
+                                ]
+                        );
+                    }
+                    if (
+                        differences < lowestDifference ||
+                        (differences === lowestDifference &&
+                            lowestDifferenceGlyph === "_")
+                    ) {
+                        lowestDifference = differences;
+                        lowestDifferenceGlyph = element.glyph;
+                    }
+                });
+            }
             if (index % horizontalGlyphs === 0 && index > 0) {
                 outputText = outputText.concat("\n");
             }
