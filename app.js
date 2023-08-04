@@ -76,7 +76,12 @@ retrieveGlyphProfiles().then(() => {
         generationDisabled = req.body.imageInfo.generationDisabled;
 
         outputText = "";
-        profiles.forEach((profileElement, index) => {
+        for (
+            let profileIndex = 0;
+            profileIndex < profiles.length;
+            profileIndex++
+        ) {
+            const profileElement = profiles[profileIndex];
             let lowestDifference = Number.MAX_SAFE_INTEGER;
             let lowestDifferenceGlyph = "";
             let skipComparisons = false;
@@ -105,7 +110,12 @@ retrieveGlyphProfiles().then(() => {
             }
 
             if (!skipComparisons) {
-                glyphProfileArray.forEach((element) => {
+                for (
+                    let glyphIndex = 0;
+                    glyphIndex < glyphProfileArray.length;
+                    glyphIndex++
+                ) {
+                    const element = glyphProfileArray[glyphIndex];
                     const comparedProfile = element.profile;
 
                     differences = 0;
@@ -129,13 +139,14 @@ retrieveGlyphProfiles().then(() => {
                         lowestDifference = differences;
                         lowestDifferenceGlyph = element.glyph;
                     }
-                });
+                }
             }
-            if (index % horizontalGlyphs === 0 && index > 0) {
+            if (profileIndex % horizontalGlyphs === 0 && profileIndex > 0) {
                 outputText = outputText.concat("\n");
             }
             outputText = outputText.concat(lowestDifferenceGlyph);
-        });
+        }
+
         res.send(JSON.stringify({ status: "success" }));
     });
 
