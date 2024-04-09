@@ -18,6 +18,8 @@ let verticalGlyphSkipRatio = 1;
 
 let imageScale = slider.value;
 
+let identifier = Math.floor(Math.random() * 1000);
+
 var drawableCanvas = document.getElementById("drawable-canvas");
 document.body.style.margin = 0;
 drawableCanvas.style.position = "fixed";
@@ -74,9 +76,11 @@ window.addEventListener("load", function () {
     if (canvasImageData.getAttribute("src") !== "#") {
         drawableContext.drawImage(canvasImageData, 0, 0);
     }
-    image.src = imageSource;
     if (imageSource !== "#") {
         imageGenerationButton.removeAttribute("disabled");
+        image = document.getElementById("img-to-ascii");
+
+        image.src = imageSource;
     }
     document
         .getElementById("image-input")
@@ -162,6 +166,7 @@ function makeBlackAndWhite() {
             imageSource: imageSource,
             canvasImageData: canvasImageData,
             generationDisabled: imageGenerationButton.hasAttribute("disabled"),
+            id: identifier,
         };
 
         output.setAttribute("rows", 5);
@@ -179,7 +184,7 @@ function makeBlackAndWhite() {
             })
             .then(async (data) => {
                 if (data.status === "success") {
-                    window.location.href = "/";
+                    window.location.href = `/?id=${identifier}`;
                 }
             });
     };
@@ -249,6 +254,7 @@ function processDrawableCanvas() {
                 canvasImageData: canvasImageData,
                 generationDisabled:
                     imageGenerationButton.hasAttribute("disabled"),
+                id: identifier,
             };
 
             output.setAttribute("rows", 5);
@@ -266,7 +272,7 @@ function processDrawableCanvas() {
                 })
                 .then(async (data) => {
                     if (data.status === "success") {
-                        window.location.href = "/";
+                        window.location.href = `/?id=${identifier}`;
                     }
                 });
         };

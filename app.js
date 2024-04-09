@@ -21,6 +21,8 @@ const glyphProfileSchema = new mongoose.Schema({
 
 const GlyphProfile = mongoose.model("GlyphProfile", glyphProfileSchema);
 
+let generatedImages = {};
+
 let glyphProfileArray = new Array();
 let comparedProfiles = [];
 async function retrieveGlyphProfiles() {
@@ -39,25 +41,21 @@ async function retrieveGlyphProfiles() {
 }
 
 retrieveGlyphProfiles().then(() => {
-    let outputText = "";
-    let rows = 5;
-    let cols = 20;
-
-    let imageSource = "#";
-    let canvasImageData = "#";
-    let generationDisabled = true;
-    let horizontalGlyphs = 20;
-
     app.get("/", function (req, res) {
-        res.render("index", {
-            output: outputText,
-            rows: rows,
-            cols: cols,
-            imageSource: imageSource,
-            canvasImageData: canvasImageData,
-            generationDisabled: generationDisabled,
-            horizontalGlyphs: horizontalGlyphs,
-        });
+        let generatedImage = generatedImages[req.query.id];
+        if (!generatedImage) {
+            generatedImage = {
+                output: "",
+                rows: 5,
+                cols: 20,
+                imageSource: "#",
+                canvasImageData: "#",
+                generationDisabled: true,
+                horizontalGlyphs: 20,
+            };
+        }
+        console.log(generatedImage.imageSource);
+        res.render("index", generatedImage);
     });
 
     app.post("/", function (req, res) {
@@ -68,6 +66,15 @@ retrieveGlyphProfiles().then(() => {
 
         // glyphProfile.save();
         console.log("POST /");
+        let outputText = "";
+        let rows = 5;
+        let cols = 20;
+
+        let imageSource = "#";
+        let canvasImageData = "#";
+        let generationDisabled = true;
+        let horizontalGlyphs = 20;
+
         const imageInfo = req.body.imageInfo;
         const profiles = imageInfo.colorProfiles;
         horizontalGlyphs = imageInfo.horizontalGlyphs;
@@ -157,10 +164,19 @@ retrieveGlyphProfiles().then(() => {
             outputText += lowestDifferenceGlyph;
         }
 
+        generatedImages[imageInfo.id] = {
+            output: outputText,
+            rows: rows,
+            cols: cols,
+            imageSource: imageSource,
+            canvasImageData: canvasImageData,
+            generationDisabled: generationDisabled,
+            horizontalGlyphs: horizontalGlyphs,
+        };
         res.send(JSON.stringify({ status: "success" }));
     });
 
     app.listen(process.env.PORT || 8008, function () {
-        console.log("Server started.");
+        console.log("Server started on port 8008.");
     });
 });
